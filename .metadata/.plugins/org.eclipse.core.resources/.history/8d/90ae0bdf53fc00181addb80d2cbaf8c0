@@ -1,5 +1,0 @@
-spring.application.name=paises-config-client
-spring.cloud.config.uri=http://localhost:8888
-debug=false
-
-management.endpoints.web.exposure.include=refresh

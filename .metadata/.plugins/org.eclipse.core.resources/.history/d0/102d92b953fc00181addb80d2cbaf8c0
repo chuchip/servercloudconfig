@@ -1,4 +1,0 @@
-spring.application.name=paises-config-server
-server.port=8888
-#eureka.client.service-url.default-zone=http://loalhost:8761/eureka
-spring.cloud.config.server.git.uri=file://C:/Users/usuario.DESKTOP-HF5D20U/Documents/git/capitales-micro-service
