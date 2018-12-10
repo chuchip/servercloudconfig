@@ -25,16 +25,16 @@ public class ConfigServiceController {
 	@GetMapping("/limites")
 	public BeanConfiguration getConfiguracion()
 	{
-		return new BeanConfiguration(configuration.getDato1(),
-				configuration.getDato2(),valorFijo,valorFuncion);
+		return new BeanConfiguration(configuration.getMinimum(),
+				configuration.getMaximum(),valorFijo,valorFuncion);
 	}
 	
 	
 	@GetMapping("/refrescado")
 	public BeanConfiguration getConfiguracionRefrescada(@Value("${valores.valor_funcion}") String valorFuncion)
 	{
-		return new BeanConfiguration(configuration.getDato1(),
-				configuration.getDato2(),valorFijo,valorFuncion);
+		return new BeanConfiguration(configuration.getMinimum(),
+				configuration.getMaximum(),valorFijo,valorFuncion);
 	}
 	@GetMapping("/datos")
 	public ConfigurationData retrieveDatosFromConfigurations() {

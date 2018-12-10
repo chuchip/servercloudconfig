@@ -9,7 +9,7 @@ import lombok.Data;
 @Component
 @ConfigurationProperties("datosservidor")
 public class ConfigurationData {	
-	private int maxResultados;
-	private int minResultados;
+	private int minimum;
+	private int maximum;
 	
 }

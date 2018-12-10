@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 @Component
-@ConfigurationProperties("otrosdatos")
+@ConfigurationProperties("limites")
 public class Configuration {
-	private int dato1;
-	private int dato2;	
-	private int dato3; // no esta definida como propiedd pero no pasa nada. Su valor sera 0.
+	private int minimum;
+	private int maximum;	
+	private int otroDato; // no esta definida como propiedd pero no pasa nada. Su valor sera 0.
 }
