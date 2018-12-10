@@ -24,7 +24,6 @@ INDEX VERSION 1.131+C:\Users\usuario.DESKTOP-HF5D20U\Documents\eclipse-learning\
 3143853253.index
 3777014328.index
 174966543.index
-434359392.index
 3544391876.index
 3999702395.index
 2384243854.index

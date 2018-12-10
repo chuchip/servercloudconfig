@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.springframework.ide.eclipse.boot.launch">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/config-client/src/main/java/com/chuchip/capitalessm/paisesconfigservice/CapitalesServiceApplication.java"/>
+<listEntry value="/config-server/src/main/java/com/profesorp/configserver/ConfigServerApplication.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.springframework.ide.eclipse.boot.launch.BootMavenClassPathProvider"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.chuchip.capitalessm.paisesconfigservice.CapitalesServiceApplication"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="config-client"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.profesorp.configserver.ConfigServerApplication"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="config-server"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.springframework.ide.eclipse.boot.launch.BootMavenSourcePathProvider"/>
 <stringAttribute key="process_factory_id" value="org.springframework.ide.eclipse.boot.launch.process.BootProcessFactory"/>
 <booleanAttribute key="spring.boot.jmx.enable" value="true"/>
