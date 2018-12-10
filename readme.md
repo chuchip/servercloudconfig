@@ -92,11 +92,11 @@ Estos orígenes incluso se pueden mezclar, de tal manera que dependiendo del per
 En el caso del servidor GIT, que es el utilizado en el ejemplo, lo importante es tener un fichero que se llame como el cliente que va a solicitar los datos, terminado en **.properties**. Así si queremos guardar configuración para una aplicación cliente que se llame **config-client** , es decir que en la variable `spring.application.name`sea igual a `config-client`, deberemos tener un fichero llamado `config-client.properties`En este fichero pondremos los valores, de esta manera:
 
 ```
-datosservidor.minResultados=10
-datosservidor.maxResultados=20
-otrosdatos.dato1=-1
-otrosdatos.dato2=2
-valores.valor_fijo: UNVALORFIJO
+datosservidor.minimum=11
+datosservidor.maximum=20
+limites.minimum=-1
+limites.maximum=2
+valores.valor_fijo: VALORFIJO
 valores.valor_funcion: "VALORDEFUNCION"
 ```
 
@@ -163,10 +163,10 @@ import lombok.Data;
 
 @Data
 @Component
-@ConfigurationProperties("otrosdatos")
+@ConfigurationProperties("limites")
 public class Configuration {
-	private int dato1;
-	private int dato2;	
+	private int minimum;
+	private int maximum;	
 }
 
 ```
@@ -205,11 +205,48 @@ public BeanConfiguration getConfiguracionRefrescada(@Value("${valores.valor_func
 	{ .... }
 ```
 
-
+* #### Funcionamiento
 
 En nuestro ejemplo se exponen las URL `/limites`, `refrescado`y `datos `. 
 
 La llamada a `limites`nos devolverá esta salida:
 
-![captura4](.\captura4.png)C
+![captura4](.\captura4.png)
+
+
+
+Suponiendo que realizáramos un _commit_   de tal manera que los valores en nuestro servidor GIT hayan cambiado, sucesivas llamadas a esta URL nos mostrarían los antiguos datos, pues el cliente solo lee la configuración al principio, a no ser que se le obligue a refrescar sus datos.
+
+Imaginemos que cambiamos el fichero `config-client.properties' de tal manera que ahora tiene estos valores
+
+```
+datosservidor.minimum=10
+datosservidor.maximum=20
+limites.minimum=-101
+limites.maximum=201
+valores.valor_fijo: OTROVALORFIJO
+valores.valor_funcion: "OTROVALORDEFUNCION"
+```
+
+Hacemos el correspondiente *commit* y *push*
+
+```
+ > git commit -a -m "cambiada configuracion";git push
+```
+
+Cuando llamemos a la URL http://localhost:8080/actuator/refresh con un método POST obligaremos a Spring a llamar al servidor de configuraciones y refrescar los valores.
+
+
+
+![captura5](.\captura5.png)
+
+Como se ve, la salida de esta petición nos devuelve las variables refrescadas.
+
+Ahora, si llamamos a http://localhost:8080/limites veríamos que el valor de **minResultados** y **maxResultados** han cambiado. Sin embargo ni **valorFijo** ni **valorFuncion**  no lo han hecho.
+
+Si llamamos a la URL http://localhost:8080/refrescado veremos que la variable **valorFuncion**   se ha actualizado pues en la llamada esta puesta la etiqueta **@Value** de tal manera que la variable es leída en ese momento. Sin embargo la variable **valorFijo** no es cambiada pues se estableció al inicio del programa y su valor permanece inalterado.
+
+Es importante destacar que si quitamos una variable en nuestro fichero de configuración, el valor de la variable no se pondrá a **null** sino que mantendrá el valor anteriormente establecido. Esto es valido tanto si la variable es leída con **@Value** como si utilizamos un **@ConfigurationProperties** en un **@Bean**
+
+Y eso es todo por ahora, en próximas lecciones explicare como hacer que las configuraciones se refresquen `automagicamente`utilizando el componente  [Spring Bus Cloud](http://spring.io/projects/spring-cloud-bus)
 
