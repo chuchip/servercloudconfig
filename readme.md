@@ -64,37 +64,152 @@ public class ConfigServerApplication {
 
 ```
 
-Como se ve, lo único destacable es la anotación **@EnableConfigServer** . Esta aplicación 
+Como se ve, lo único destacable es la anotación **@EnableConfigServer** . 
 
+En el fichero **application.properties** pondremos donde debe buscar las configuraciones, con el parámetro:  **spring.cloud.config.server.git.uri**
 
+````
+spring.application.name=config-server
+server.port=8888
 
-Las peticiones para ver las variables definidas deberán ser lanzadas a 
-http://localhost:8888/NOMBRE_APLICACION/PERFIL 
-Donde `NOMBRE_APLICACION` debera ser el configurado en la propiedad `spring.application.name`
+spring.cloud.config.server.git.uri=https://github.com/chuchip/servercloudconfig.git
+````
 
-Esto buscara en el repositorio GIT el fichero "NOMBRE_APLICACION.properties" del
-
-
-
-
-
-El fichero **bootstrap.properties**  sustitura a **config.properties**.
-
-Se deberá poner el nombre de la aplicación con la propiedad: `spring.application.name` 
-Ese será el fichero _properties_ que buscara en el repositorio git del servidor de configuraciones.
-
-Si existe la propiedad `spring.cloud.config.name=capitales-ms`se utilizara esta variable en vez de `spring.application.name`
-
-Si el nombre de la aplicación o de la variable spring.cloud.config.name es **capitales-service**, la petición será lanzada a [http://localhost:8888/capitales-service/default](http://localhost:8888/capitales-service/default)
-
-Si la variable `spring.profiles.active` en **bootstrap.properties**  es igual a `qa`  la peticion se lanzaria a [http://localhost:8888/capitales-service/qa](http://localhost:8888/capitales-service/qa)
-
-Las variables buscadas seran las especificadas por la etiqueta `@ConfigurationProperties`.
-
-Por ejemplo,si la etiqueta es `@ConfigurationProperties(@ConfigurationProperties("capitales-service")` y el nombre de la aplicación es **paises-config-cliente**, en el servidor GIT buscara el fichero `paises-config-client.properties` y dentro de él las variables que empiecen por **capitales-service** como
+En este caso le decimos que use un servidor **Git** que tenemos alojado en **GitHub**. También podríamos especificar que el use un repositorio **GIT** local de este modo:
 
 ```
-capitales-service.idiomaDefecto: es-ES
-capitales-service.maxResultados: 40
+spring.cloud.config.server.git.uri=file://eclipe/spring-config/
 ```
+
+Los servidores de configuración de **Spring Cloud** soportan los siguientes orígenes (backends): 
+
+* GIT 
+* Vault 
+* JDBC	,
+
+Estos orígenes incluso se pueden mezclar, de tal manera que dependiendo del perfil elegido se use uno u otro. Pero esto se escapa al ámbito de este documento.
+
+En el caso del servidor GIT, que es el utilizado en el ejemplo, lo importante es tener un fichero que se llame como el cliente que va a solicitar los datos, terminado en **.properties**. Así si queremos guardar configuración para una aplicación cliente que se llame **config-client** , es decir que en la variable `spring.application.name`sea igual a `config-client`, deberemos tener un fichero llamado `config-client.properties`En este fichero pondremos los valores, de esta manera:
+
+```
+datosservidor.minResultados=10
+datosservidor.maxResultados=20
+otrosdatos.dato1=-1
+otrosdatos.dato2=2
+valores.valor_fijo: UNVALORFIJO
+valores.valor_funcion: "VALORDEFUNCION"
+```
+
+Obsérvese que el valor puede ser asignado con **:** (dos puntos) o  **=** (igual)
+
+**NO** usar comillas para delimitar los literales, a no ser que se quiera que nuestro literal (String) incluya esas comillas.
+
+Para ver los valores pasados a nuestros cliente, realizaremos una petición GET especificando el nombre del cliente y el perfil. 
+
+![captura2](.\captura2.png)
+
+En este caso solicitamos la configuración para el cliente `config-client`y el perfil `default`que es el perfil utilizado si no especifica ninguno.
+
+Para ver la configuración para el perfil `production` se llamaría a la URL:http://localhost:8888/config-client/production. Lo cual muestra la siguiente salida:
+
+![captura3](.\captura3.png)
+
+Como se puede observar, muestra el contenido del fichero `config-client-production.properties`y después el contenido del fichero`config-client.properties`. 
+
+De esta manera, si  un cliente solicita un valor y ese valor existe en el perfil solicitado, se devolverá ese valor. En caso contrario se buscaría en el perfil **default** , devolviendo el valor asignado si lo tuviera.
+
+2. #### Cliente de configuraciones
+
+Una vez tenemos nuestro servidor de configuraciones y levantado, pasaremos a crear el cliente.
+
+La única dependencia en nuestro fichero **maven** será la siguiente:
+
+```maven
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+```
+
+Usando **Spring Initializr** seria añadir la dependencia **Config Client** . Además, para poder refrescar la configuración en caliente, añadiremos el _starter_ **Actuator**
+
+Ahora deberemos configurar la aplicación para especificar donde esta el servidor de configuraciones, para ello, lo primero será cambiar el fichero **config.properties** por **bootstrap.properties** . En este fichero añadiremos la propiedad `spring.cloud.config.uri`especificara la URL de nuestro servidor de configuraciones.
+
+```
+spring.application.name=config-client
+spring.cloud.config.uri=http://localhost:8888
+#spring.profiles.active=production
+management.endpoints.web.exposure.include=refresh
+```
+
+También estableceremos la propiedad `management.endpoints.web.exposure.include` a `refresh`para configurar el paquete **actuator** de tal modo que se pueda acceder a la URL `http://localhost:8080/actuator/refresh`que será la que obligara a refrescar las diferentes propiedades.
+
+Recordar que la variable `spring.application.name`establecera el nombre de la aplicación e indicara el fichero del repositorio _git_ donde se buscaran los valores de configuración.
+
+Con la variable `spring.profiles.active`indicariamos que perfil es el  que debemos usar. Si no ponemos ninguno (como es el caso pues esta comentada la línea), se utilizara el perfil **default**
+
+En este ejemplo uso varios métodos para leer la configuración. 
+
+1. ##### Crear un _componente_ que incluye la etiqueta **@ConfigurationProperties** 
+
+En este método, que es el mas sencillo,  indicamos cual es la raíz de las propiedades a leer y luego definimos las variables que Spring debe rellenar.
+
+En la clase `configuration.java` especificamos que queremos coger las variables que empiecen por **otrosdatos** .
+
+```java
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import lombok.Data;
+
+@Data
+@Component
+@ConfigurationProperties("otrosdatos")
+public class Configuration {
+	private int dato1;
+	private int dato2;	
+}
+
+```
+
+De este modo la variable `dato1` tendrá el valor especificado en `otrosdatos.dato1` 
+
+Si `otrosdatos.dato1`tuviera un valor que no se puede pasar a un entero nuestra aplicación fallaría, sin embargo si no encuentra el valor simplemente no lo rellena, sin dar ningún tipo de error.
+
+Este _componente_ será inyectado a  través de una etiqueta @Autowired
+
+```java
+@Autowired
+private Configuration configuration;
+```
+
+
+
+2. ##### Crear una variable con la anotación @Value
+
+De esta manera también se leerá el valor del servidor de configuraciones. La mayor diferencia es que ese valor será fijo pues será asignado al ejecutar la aplicación y no se refrescara nunca.
+
+```
+@Value("${valores.valor_fijo}")
+String valorFijo;
+```
+
+La variable `valorFijo`tendra el valor asignado en la línea: `valores.valor_fijo`
+
+3. ##### Usar la anotación @Value en el parámetro de una función
+
+Igualmente el valor se leerá desde el servidor de configuraciones con la ventaja de que el valor podrá ser refrescado.
+
+```java
+@GetMapping("/refrescado")
+public BeanConfiguration getConfiguracionRefrescada(@Value("${valores.valor_funcion}") String valorFuncion)
+	{ .... }
+```
+
+
+
+En nuestro ejemplo se exponen las URL `/limites`, `refrescado`y `datos `. 
+
+La llamada a `limites`nos devolverá esta salida:
+
+![captura4](.\captura4.png)C
 
