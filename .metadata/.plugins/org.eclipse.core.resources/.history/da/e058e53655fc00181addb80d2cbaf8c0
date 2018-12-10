@@ -1,0 +1,15 @@
+package com.chuchip.capitalessm.paisesconfigservice.bean;
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class BeanConfiguration {
+	private int  minResultados;
+	private int maxResultados;		
+	private String valorFijo;
+	private String valorFuncion;
+}
